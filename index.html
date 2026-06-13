@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Ticket Booking DBMS</title>
+    
+    <!-- Meta Descriptions for SEO -->
+    <meta name="description" content="A premium database management system project for movie ticket booking with triggers, stored procedures, and complex queries.">
+    <meta name="keywords" content="DBMS project, movie ticket booking, SQL triggers, stored procedures, PHP, MySQL, CSS dark theme">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+    <!-- Animated starfield background -->
+    <canvas id="star-canvas"></canvas>
+
+    <!-- Header Section -->
+    <header>
+        <div class="logo-section">
+            <span class="logo-icon">🎟️</span>
+            <span class="logo-text">CineReserve</span>
+            <span class="logo-subtext">DBMS Console</span>
+        </div>
+        
+        <div class="header-controls">
+            <!-- Health Indicator -->
+            <div style="font-size: 0.8rem; display: flex; align-items: center; gap: 4px; background: var(--bg-darker); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);">
+                <span id="db-status-dot" class="db-indicator offline"></span>
+                <span id="db-status-text" style="color: var(--text-muted); font-weight: 500;">Demo Mode (Offline)</span>
+            </div>
+
+            <!-- Mode Switcher -->
+            <div class="control-group">
+                <button id="btn-mode-demo" class="control-btn active" title="Run offline simulation using browser local state">Demo Mode</button>
+                <button id="btn-mode-mysql" class="control-btn" title="Run with local PHP server and MySQL database schema">PHP/MySQL</button>
+            </div>
+            
+            <!-- User Role Toggle -->
+            <div class="control-group">
+                <button id="btn-role-customer" class="control-btn active">Customer</button>
+                <button id="btn-role-admin" class="control-btn">Admin Portal</button>
+            </div>
+        </div>
+        <!-- Animated gradient accent bar -->
+        <div class="header-gradient-bar"></div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="app-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <ul class="nav-menu">
+                <li class="nav-item active">
+                    <a href="#" data-view="movies">
+                        <span>🎬</span> Now Showing
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" data-view="tickets">
+                        <span>🎟️</span> My Tickets
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" data-view="queries">
+                        <span>⚡</span> SQL Diagnostics
+                    </a>
+                </li>
+                <li class="nav-item admin-only">
+                    <a href="#" data-view="admin">
+                        <span>⚙️</span> Admin Panel
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- User Profile Widget -->
+            <div class="user-badge" id="user-profile-badge">
+                <div class="user-avatar" id="avatar-letter">J</div>
+                <div class="user-info">
+                    <div class="user-name" id="current-username">Jane Doe</div>
+                    <div class="user-role" id="current-userrole">Customer</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="content-area">
+
+            <!-- 1. Movies & Showtime Selector Grid -->
+            <section id="view-movies" class="view-section active">
+                <div class="section-header">
+                    <div class="section-title">
+                        <h1>Now Screening</h1>
+                        <p>Explore hot shows, review rankings, and schedule your reservation</p>
+                    </div>
+                </div>
+                <div class="movies-grid" id="movies-grid">
+                    <!-- Dynamic rendering in app.js -->
+                </div>
+            </section>
+
+            <!-- 2. Reservation & Digital Ticket view -->
+            <section id="view-tickets" class="view-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <h1>Your Reservations</h1>
+                        <p>Access your active cinema booking passes and QR tickets</p>
+                    </div>
+                </div>
+                <div class="tickets-list" id="tickets-list">
+                    <!-- Dynamic rendering in app.js -->
+                </div>
+            </section>
+
+            <!-- 3. Preconfigured DBMS SQL queries Panel -->
+            <section id="view-queries" class="view-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <h1>SQL Query execution diagnostics</h1>
+                        <p>Execute and analyze complex relational joins, subqueries, triggers, and stored procedures</p>
+                    </div>
+                </div>
+                
+                <div class="queries-layout">
+                    <!-- Selection list sidebar -->
+                    <div class="queries-sidebar">
+                        <div class="query-selection-card selected" data-query-id="query_join">
+                            <div class="query-card-title">5-Table JOIN Query</div>
+                            <div class="query-card-desc">Users, showtimes, seats, payments & titles.</div>
+                        </div>
+                        <div class="query-selection-card" data-query-id="query_subquery">
+                            <div class="query-card-title">HAVING Subquery</div>
+                            <div class="query-card-desc">Find movies with revenue above the average.</div>
+                        </div>
+                        <div class="query-selection-card" data-query-id="query_procedure">
+                            <div class="query-card-title">Stored Procedure Call</div>
+                            <div class="query-card-desc">Execute sp_get_revenue_report().</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Code view area -->
+                    <div class="queries-main">
+                        <div class="query-editor-box">
+                            <div class="query-editor-header">
+                                <span class="query-type-badge" id="query-type-tag">JOIN QUERY</span>
+                                <button class="run-query-btn" id="btn-run-query">⚡ Run SQL</button>
+                            </div>
+                            
+                            <!-- Monospace interactive console -->
+                            <pre class="sql-console"><code id="sql-code-editor"></code></pre>
+                            
+                            <!-- Concept explanation label -->
+                            <div class="query-explanation" id="query-desc-text"></div>
+                        </div>
+                        
+                        <!-- Execution result visualizer -->
+                        <div class="db-table-container">
+                            <div class="table-header-bar">
+                                <span class="table-title">SQL Result Table</span>
+                                <span style="font-size: 0.75rem; color: var(--text-dark); font-family: var(--font-mono)">Response Grid</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="db-table">
+                                    <thead>
+                                        <tr id="query-result-th">
+                                            <!-- Headers -->
+                                        </tr>
+                                    </thead>
+                                    <tbody id="query-result-tbody">
+                                        <!-- Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. Admin View & Database control center -->
+            <section id="view-admin" class="view-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <h1>Admin Dashboard</h1>
+                        <p>Configure screening schedules, monitor revenues, and inspect audit trigger logs</p>
+                    </div>
+                    <button class="btn-secondary" id="btn-reset-db" style="border-color: var(--danger); color: var(--danger)">Reset DBMS Database</button>
+                </div>
+
+                <!-- Numerical metrics highlights -->
+                <div class="admin-stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">Total Revenue</span>
+                        <div class="stat-value" id="stat-revenue">₹0.00</div>
+                        <span class="stat-trend up">📈 Transaction logs synced</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Confirmed Bookings</span>
+                        <div class="stat-value" id="stat-bookings">0</div>
+                        <span class="stat-trend up">🎟️ Seat allocations active</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Movies Listed</span>
+                        <div class="stat-value" id="stat-movies">0</div>
+                        <span class="stat-trend" style="color: var(--accent-cyan)">🎬 Running theater screen</span>
+                    </div>
+                </div>
+
+                <!-- Layout grids -->
+                <div class="admin-tabs">
+                    <button class="admin-tab active" id="tab-link-movies" onclick="loadAdminTab('movies')">Movies Catalogue</button>
+                    <button class="admin-tab" id="tab-link-shows" onclick="loadAdminTab('shows')">Showtimes Scheduling</button>
+                </div>
+
+                <div class="queries-layout" style="grid-template-columns: 380px 1fr; margin-top: 1.5rem;">
+                    <!-- Admin Left form sidebar -->
+                    <div>
+                        <!-- Movies Form -->
+                        <div id="admin-movies-content" class="admin-tab-content">
+                            <div class="query-editor-box" style="background: var(--bg-card); padding: 1.25rem;">
+                                <h3 style="font-family: var(--font-outfit); font-size: 1.1rem; margin-bottom: 1rem;">Add New Movie</h3>
+                                <form id="form-add-movie">
+                                    <div class="form-group">
+                                        <label for="form-movie-title">Movie Title</label>
+                                        <input type="text" id="form-movie-title" class="form-input" required placeholder="e.g. Interstellar">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="form-movie-genre">Genre</label>
+                                        <input type="text" id="form-movie-genre" class="form-input" required placeholder="e.g. Sci-Fi / Drama">
+                                    </div>
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label for="form-movie-duration">Duration (mins)</label>
+                                            <input type="number" id="form-movie-duration" class="form-input" required placeholder="120">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="form-movie-rating">Rating (0 - 10)</label>
+                                            <input type="number" id="form-movie-rating" class="form-input" required min="0" max="10" step="0.1" placeholder="8.5">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="form-movie-desc">Description</label>
+                                        <textarea id="form-movie-desc" class="form-input" required placeholder="Describe the movie plot..."></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="form-movie-poster">Poster Image URL (Optional)</label>
+                                        <input type="url" id="form-movie-poster" class="form-input" placeholder="https://unsplash.com/...">
+                                    </div>
+                                    <button type="submit" class="book-btn" style="padding: 8px;">Register Movie</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Shows Form -->
+                        <div id="admin-shows-content" class="admin-tab-content" style="display: none;">
+                            <div class="query-editor-box" style="background: var(--bg-card); padding: 1.25rem;">
+                                <h3 style="font-family: var(--font-outfit); font-size: 1.1rem; margin-bottom: 1rem;">Schedule Showtime</h3>
+                                <form id="form-add-show">
+                                    <div class="form-group">
+                                        <label for="form-show-movie">Select Movie</label>
+                                        <select id="form-show-movie" class="form-input" required style="background-color: var(--bg-input);">
+                                            <!-- Movies populates here -->
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="form-show-theater">Theater / Screen</label>
+                                        <input type="text" id="form-show-theater" class="form-input" required placeholder="e.g. Screen 1 (IMAX)">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="form-show-time">Date & Time</label>
+                                        <input type="datetime-local" id="form-show-time" class="form-input" required>
+                                    </div>
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label for="form-show-price">Price (₹)</label>
+                                            <input type="number" id="form-show-price" class="form-input" required min="0" step="0.01" placeholder="250.00">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="form-show-seats">Capacity (Seats)</label>
+                                            <input type="number" id="form-show-seats" class="form-input" required value="80" placeholder="80">
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="book-btn" style="padding: 8px;">Create Showtime</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Audit Logs Trigger Stream (Always visible below form on Admin) -->
+                        <div style="margin-top: 1.5rem;">
+                            <h3 style="font-family: var(--font-outfit); font-size: 1rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                DB Audit Logs (Triggers Output)
+                            </h3>
+                            <div class="log-stream" id="log-stream">
+                                <!-- Trigger logs go here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Right database tables grid -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <!-- Movie grid table -->
+                        <div class="db-table-container" id="admin-movie-list-table">
+                            <div class="table-header-bar">
+                                <span class="table-title">Movies Table</span>
+                                <span style="font-size: 0.75rem; color: var(--text-dark); font-family: var(--font-mono)">movies</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="db-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 80px;">ID</th>
+                                            <th>Title</th>
+                                            <th>Genre</th>
+                                            <th>Duration</th>
+                                            <th>Rating</th>
+                                            <th style="width: 80px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-movies-tbody">
+                                        <!-- Movies content -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Shows grid table -->
+                        <div class="db-table-container" id="admin-shows-list-table">
+                            <div class="table-header-bar">
+                                <span class="table-title">Showtimes Table</span>
+                                <span style="font-size: 0.75rem; color: var(--text-dark); font-family: var(--font-mono)">shows</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="db-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 80px;">ID</th>
+                                            <th>Movie</th>
+                                            <th>Theater</th>
+                                            <th>Showtime</th>
+                                            <th>Price</th>
+                                            <th>Available Seats</th>
+                                            <th style="width: 80px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-shows-tbody">
+                                        <!-- Shows content -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Booking & Seating Modal Backdrop -->
+    <div class="modal-backdrop" id="booking-modal">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h2 id="modal-movie-title">Book Tickets</h2>
+                <button class="close-modal-btn">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- STEP 1: Seat picker -->
+                <div id="modal-step-seats">
+                    <!-- Showtime Selector -->
+                    <div class="showtime-selector">
+                        <h3>1. Select Screening</h3>
+                        <div class="showtime-grid" id="modal-showtime-grid">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Seating Layout grid mapping -->
+                    <div class="seating-section" id="seating-layout-wrapper">
+                        <h3>2. Select Seats</h3>
+                        <div class="theater-container">
+                            <div class="screen-visual">
+                                <div class="screen-text">Cinema Screen</div>
+                            </div>
+                            <div id="seating-grid" style="display: flex; flex-direction: column; align-items: center;">
+                                <!-- Seating grid rows dynamically generated -->
+                            </div>
+                            
+                            <!-- Legend -->
+                            <div class="seats-legend">
+                                <div class="legend-item">
+                                    <div class="legend-box available"></div>
+                                    <span>Available</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-box selected"></div>
+                                    <span>Selected</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-box booked"></div>
+                                    <span>Booked</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Summary bottom bar -->
+                        <div class="booking-summary-bar">
+                            <div class="summary-info">
+                                <span class="summary-seats" id="selected-seats-summary">No Seats Selected</span>
+                                <span class="summary-price" id="selected-price-summary">₹0.00</span>
+                            </div>
+                            <button class="checkout-btn" id="btn-confirm-seats" disabled>Proceed to Checkout</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Checkout & Secure payment simulation -->
+                <div id="modal-step-payment" class="payment-section">
+                    <h3 style="font-family: var(--font-outfit); font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+                        Payment Checkout
+                    </h3>
+                    
+                    <div style="background: var(--bg-card); border: 1px solid var(--border); padding: 1rem; border-radius: 8px; font-size: 0.9rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <div><strong>Movie:</strong> <span id="checkout-movie-title">Interstellar</span></div>
+                        <div><strong>Screening:</strong> <span id="checkout-theater-name">IMAX</span> | <span id="checkout-showtime">2026-06-15</span></div>
+                        <div><strong>Selected Seats:</strong> <span id="checkout-seats" style="color: var(--accent-cyan); font-weight: 600;">A1, A2</span></div>
+                        <div style="font-size: 1.1rem; border-top: 1px solid var(--border); padding-top: 0.5rem; margin-top: 0.5rem; display: flex; justify-content: space-between;">
+                            <span>Amount Due:</span>
+                            <strong id="checkout-total-price" style="color: var(--success)">₹0.00</strong>
+                        </div>
+                    </div>
+
+                    <div class="showtime-selector">
+                        <h3>Select Payment Method</h3>
+                        <div class="payment-methods">
+                            <div class="payment-method-card" id="pay-method-upi" data-method="UPI">
+                                <span class="payment-method-icon">📱</span>
+                                <span class="payment-method-name">UPI Payment (GPay/PhonePe)</span>
+                            </div>
+                            <div class="payment-method-card" id="pay-method-card" data-method="Credit Card">
+                                <span class="payment-method-icon">💳</span>
+                                <span class="payment-method-name">Credit / Debit Card</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions" style="margin-top: 0.5rem;">
+                        <button class="btn-secondary" id="btn-back-to-seats" type="button">Back to Seats</button>
+                        <button class="checkout-btn" id="btn-pay" type="button">Pay & Confirm Booking</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/queries.js"></script>
+    <script src="assets/js/app.js"></script>
+
+    <!-- Starfield Background Animation -->
+    <script>
+    (function() {
+        const canvas = document.getElementById('star-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+        const STAR_COUNT = 80;
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = document.body.scrollHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        for (let i = 0; i < STAR_COUNT; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                r: Math.random() * 1.5 + 0.3,
+                alpha: Math.random(),
+                dAlpha: (Math.random() * 0.015 + 0.003) * (Math.random() > 0.5 ? 1 : -1),
+                color: ['#6366f1','#06b6d4','#a78bfa','#818cf8','#94a3b8'][Math.floor(Math.random()*5)]
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (const s of stars) {
+                s.alpha += s.dAlpha;
+                if (s.alpha <= 0.1 || s.alpha >= 1) s.dAlpha *= -1;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                ctx.fillStyle = s.color;
+                ctx.globalAlpha = Math.max(0.05, Math.min(s.alpha, 0.7));
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+            requestAnimationFrame(draw);
+        }
+        draw();
+
+        // Re-size canvas on scroll to cover full page
+        const resizeObserver = new ResizeObserver(() => resize());
+        resizeObserver.observe(document.body);
+    })();
+    </script>
+</body>
+</html>
